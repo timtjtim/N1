@@ -45,6 +45,7 @@ export default class ThreadListContextMenu {
     if (this.threadIds.length !== 1) { return null }
     return {
       label: "Reply",
+      icon: "static/images/context-menu/replyTemplate.png",
       click: () => {
         Actions.composeReply({threadId: this.threadIds[0], popout: true});
       },
@@ -60,6 +61,7 @@ export default class ThreadListContextMenu {
       if (message && message.canReplyAll()) {
         return {
           label: "Reply All",
+          icon: "static/images/context-menu/replyAllTemplate.png",
           click: () => {
             Actions.composeReplyAll({threadId: this.threadIds[0], popout: true});
           },
@@ -73,6 +75,7 @@ export default class ThreadListContextMenu {
     if (this.threadIds.length !== 1) { return null }
     return {
       label: "Forward",
+      icon: "static/images/context-menu/forwardTemplate.png",
       click: () => {
         Actions.composeForward({threadId: this.threadIds[0], popout: true});
       },
@@ -85,6 +88,7 @@ export default class ThreadListContextMenu {
     }
     return {
       label: "Archive",
+      icon: "static/images/context-menu/archiveTemplate.png",
       click: () => {
         const tasks = TaskFactory.tasksForArchiving({
           threads: this.threads,
@@ -101,6 +105,7 @@ export default class ThreadListContextMenu {
     }
     return {
       label: "Trash",
+      icon: "static/images/context-menu/trashTemplate.png",
       click: () => {
         const tasks = TaskFactory.tasksForMovingToTrash({
           threads: this.threads,
@@ -119,6 +124,7 @@ export default class ThreadListContextMenu {
 
     return {
       label: `Mark as ${dir}`,
+      icon: `static/images/context-menu/mark${dir}Template.png`,
       click: () => {
         const task = TaskFactory.taskForInvertingUnread({
           threads: this.threads,
@@ -135,14 +141,17 @@ export default class ThreadListContextMenu {
 
     let dir = ""
     let star = "Star"
+    let icon = "star"
     if (!starred) {
-      dir = "Remove "
+      dir = "Remove ";
+      icon = "unstar"
       star = (this.threadIds.length > 1) ? "Stars" : "Star"
     }
 
 
     return {
       label: `${dir}${star}`,
+      icon: `static/images/context-menu/${icon}Template.png`,
       click: () => {
         const task = TaskFactory.taskForInvertingStarred({
           threads: this.threads,
