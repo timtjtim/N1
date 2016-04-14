@@ -57,6 +57,41 @@ const genEvent = ({start, end, object = "timespan"}) => {
 // See: http://momentjs.com/timezone/docs/#/using-timezones/parsing-ambiguous-inputs/
 
 // All times are in "America/Los_Angeles"
+export const numAllDayEvents = 6
+export const numByDay = {
+  1457769600: 2,
+  1457856000: 7,
+}
+export const eventOverlapForSunday = {
+  "server-2": {
+    concurrentEvents: 2,
+    order: 1,
+  },
+  "server-3": {
+    concurrentEvents: 2,
+    order: 2,
+  },
+  "server-6": {
+    concurrentEvents: 1,
+    order: 1,
+  },
+  "server-7": {
+    concurrentEvents: 1,
+    order: 1,
+  },
+  "server-8": {
+    concurrentEvents: 2,
+    order: 1,
+  },
+  "server-9": {
+    concurrentEvents: 2,
+    order: 2,
+  },
+  "server-10": {
+    concurrentEvents: 2,
+    order: 1,
+  },
+}
 export const events = [
   // Single event
   genEvent({start: "2016-03-12 12:00", end: "2016-03-12 13:00"}),
@@ -65,7 +100,7 @@ export const events = [
   genEvent({start: "2016-03-12 23:00", end: "2016-03-13 06:00"}),
 
   // DST start invalid event. Does not exist!
-  genEvent({start: "2016-03-12 02:15", end: "2016-03-13 02:45"}),
+  genEvent({start: "2016-03-13 02:15", end: "2016-03-13 02:45"}),
 
   // DST end spanning event. 8 hours when it shoudl be 7!
   genEvent({start: "2016-11-05 23:00", end: "2016-11-06 06:00"}),

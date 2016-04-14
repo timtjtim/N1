@@ -9,6 +9,11 @@ import {
 } from './test-utils'
 import TestDataSource from './test-data-source'
 import {NylasCalendar} from 'nylas-component-kit'
+import {
+  numByDay,
+  numAllDayEvents,
+  eventOverlapForSunday,
+} from './fixtures/events'
 
 import WeekView from '../../../src/components/nylas-calendar/week-view'
 
@@ -27,7 +32,8 @@ fdescribe("Nylas Calendar Week View", () => {
   });
 
   it("renders a calendar", () => {
-    expect(ReactTestUtils.findRenderedComponentWithType(this.calendar, NylasCalendar) instanceof NylasCalendar).toBe(true)
+    const cal = ReactTestUtils.findRenderedComponentWithType(this.calendar, NylasCalendar)
+    expect(cal instanceof NylasCalendar).toBe(true)
   });
 
   it("sets the correct moment", () => {
@@ -99,5 +105,35 @@ fdescribe("Nylas Calendar Week View", () => {
 
     expect(this.weekView.state.startMoment.unix()).toBe(NOW_BUFFER_START.unix());
     expect(this.weekView._scrollTime).toBe(NOW_WEEK_START.unix())
+  });
+
+  it("sets the interval height properly", () => {
+    expect(this.weekView.state.intervalHeight).toBe(21)
+  });
+
+  it("properly segments the events by day", () => {
+    const days = this.weekView._daysInView();
+    const eventsByDay = this.weekView._eventsByDay(days);
+
+    // See fixtures/events
+    expect(eventsByDay.allDay.length).toBe(numAllDayEvents);
+    for (const day in numByDay) {
+      if (numByDay.hasOwnProperty(day)) {
+        expect(eventsByDay[day].length).toBe(numByDay[day])
+      }
+    }
+  });
+
+  it("correctly stacks all day events", () => {
+    const height = this.weekView.refs.weekViewAllDayEvents.props.height;
+    // This means it's 3-high
+    expect(height).toBe(64);
+  });
+
+  it("correctly sets up the event overlap for a day", () => {
+    const days = this.weekView._daysInView();
+    const eventsByDay = this.weekView._eventsByDay(days);
+    const eventOverlap = this.weekView._eventOverlap(eventsByDay['1457856000']);
+    expect(eventOverlap).toEqual(eventOverlapForSunday)
   });
 });

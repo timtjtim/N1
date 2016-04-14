@@ -461,6 +461,7 @@ export default class WeekView extends React.Component {
               </div>
 
               <WeekViewAllDayEvents
+                ref="weekViewAllDayEvents"
                 minorDim={MIN_INTERVAL_HEIGHT}
                 end={this.state.endMoment.unix()}
                 height={this._allDayEventHeight(allDayOverlap)}
