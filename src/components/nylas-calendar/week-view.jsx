@@ -1,7 +1,7 @@
 import _ from 'underscore'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import moment from 'moment'
+import moment from 'moment-timezone'
 import classnames from 'classnames'
 import {Utils} from 'nylas-exports'
 
@@ -103,9 +103,21 @@ export default class WeekView extends React.Component {
   }
 
   _calculateStartMoment(props) {
-    const start = moment([props.currentMoment.year()])
-      .weekday(0)
-      .week(props.currentMoment.week())
+    let start;
+
+    // NOTE: Since we initialize a new time from one of the properties of
+    // the props.currentMomet, we need to check for the timezone!
+    //
+    // Other relative operations (like adding or subtracting time) are
+    // independent of a timezone.
+    const tz = props.currentMoment.tz()
+    if (tz) {
+      start = moment.tz([props.currentMoment.year()], tz)
+    } else {
+      start = moment([props.currentMoment.year()])
+    }
+
+    start = start.weekday(0).week(props.currentMoment.week())
       .subtract(BUFFER_DAYS, 'days')
     return start
   }
@@ -240,7 +252,10 @@ export default class WeekView extends React.Component {
 
   _headerComponents() {
     const left = (
-      <button key="today" className="btn" onClick={this._onClickToday} style={{position: 'absolute', left: 10}}>
+      <button key="today" className="btn" ref="todayBtn"
+        onClick={this._onClickToday}
+        style={{position: 'absolute', left: 10}}
+      >
         Today
       </button>
     );
@@ -418,6 +433,7 @@ export default class WeekView extends React.Component {
           <TopBanner bannerComponents={this.props.bannerComponents} />
 
           <HeaderControls title={this._currentWeekText()}
+            ref="headerControls"
             headerComponents={this._headerComponents()}
             nextAction={this._onClickNextWeek}
             prevAction={this._onClickPrevWeek}

@@ -3,7 +3,9 @@ import {events} from './fixtures/events'
 import {CalendarDataSource} from 'nylas-exports'
 
 export default class TestDataSource extends CalendarDataSource {
-  buildObservable() {
+  buildObservable({startTime, endTime}) {
+    this.endTime = endTime;
+    this.startTime = startTime;
     return this
   }
 
