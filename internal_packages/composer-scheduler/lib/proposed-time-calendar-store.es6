@@ -90,7 +90,9 @@ class ProposedTimeCalendarStore extends NylasStore {
     const maxMoment = moment.unix(bounds.end);
     maxMoment.ceil(30, 'minutes');
 
-    if (maxMoment.isSameOrBefore(minMoment)) { return }
+    if (maxMoment.isSame(minMoment)) {
+      maxMoment.add(30, 'minutes')
+    }
 
     this._proposals = _.reject(this._proposals, (p) =>
       Utils.overlapsBounds(bounds, p)
@@ -99,7 +101,7 @@ class ProposedTimeCalendarStore extends NylasStore {
     const blockSize = this._duration.slice(0, 2)
     blockSize[0] = blockSize[0] / 1; // moment requires a number
     const isMinBlockSize = (bounds.end - bounds.start) >= moment.duration.apply(moment, blockSize).as('seconds');
-    while (minMoment.isSameOrBefore(maxMoment)) {
+    while (minMoment.isBefore(maxMoment)) {
       const start = minMoment.unix();
       minMoment.add(blockSize[0], blockSize[1]);
       const end = minMoment.unix() - 1;

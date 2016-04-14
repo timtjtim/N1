@@ -8,12 +8,13 @@ export default class TestProposalDataSource extends CalendarDataSource {
     return this
   }
 
-  _testProposalsAsEvents() {
-    return ProposedTimeCalendarStore.proposalsAsEvents()
+  manuallyTrigger() {
+    this.onNext({events: ProposedTimeCalendarStore.proposalsAsEvents()})
   }
 
   subscribe(onNext) {
-    onNext({events: this._testProposalsAsEvents()});
+    this.onNext = onNext
+    this.manuallyTrigger()
     const dispose = jasmine.createSpy("dispose")
     return {dispose}
   }

@@ -423,6 +423,7 @@ export default class WeekView extends React.Component {
     const eventsByDay = this._eventsByDay(days)
     const allDayOverlap = this._eventOverlap(eventsByDay.allDay);
     const tickGen = this._tickGenerator.bind(this);
+
     return (
       <div className="calendar-view week-view">
         <CalendarEventContainer

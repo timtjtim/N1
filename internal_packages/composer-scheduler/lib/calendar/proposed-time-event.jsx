@@ -32,7 +32,7 @@ export default class ProposedTimeEvent extends React.Component {
   render() {
     if (this.props.event.calendarId === CALENDAR_ID) {
       return (
-        <div className="rm-time"
+        <div className="rm-time proposal"
           data-end={this.props.event.end}
           data-start={this.props.event.start}
           onMouseDown={this._onMouseDown}
