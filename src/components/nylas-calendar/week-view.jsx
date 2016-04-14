@@ -60,6 +60,7 @@ export default class WeekView extends React.Component {
   }
 
   componentDidMount() {
+    this._mounted = true;
     this._centerScrollRegion()
     this._setIntervalHeight()
     const weekStart = moment(this.state.startMoment).add(BUFFER_DAYS, 'days').unix()
@@ -78,6 +79,7 @@ export default class WeekView extends React.Component {
   }
 
   componentWillUnmount() {
+    this._mounted = false;
     this._sub.dispose();
     window.removeEventListener('resize', this._setIntervalHeight)
   }
@@ -303,6 +305,7 @@ export default class WeekView extends React.Component {
   }
 
   _setIntervalHeight = () => {
+    if (!this._mounted) { return } // Resize unmounting is delayed in tests
     const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap);
     const wrapHeight = wrap.getBoundingClientRect().height;
     if (this._lastWrapHeight === wrapHeight) {
@@ -399,7 +402,7 @@ export default class WeekView extends React.Component {
     const days = this._daysInView();
     const eventsByDay = this._eventsByDay(days)
     const allDayOverlap = this._eventOverlap(eventsByDay.allDay);
-    const tickGen = this._tickGenerator.bind(this)
+    const tickGen = this._tickGenerator.bind(this);
     return (
       <div className="calendar-view week-view">
         <CalendarEventContainer
