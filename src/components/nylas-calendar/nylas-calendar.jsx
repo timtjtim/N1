@@ -17,6 +17,8 @@ export default class NylasCalendar extends React.Component {
      */
     dataSource: React.PropTypes.instanceOf(CalendarDataSource).isRequired,
 
+    currentMoment: React.PropTypes.instanceOf(moment),
+
     /**
      * Any extra info you want to display on the top banner of calendar
      * components
@@ -72,7 +74,7 @@ export default class NylasCalendar extends React.Component {
     super(props);
     this.state = {
       currentView: WEEK_VIEW,
-      currentMoment: moment(),
+      currentMoment: props.currentMoment || moment(),
     };
   }
 

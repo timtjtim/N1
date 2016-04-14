@@ -4,6 +4,8 @@ import {now} from './test-utils'
 import TestDataSource from './test-data-source'
 import {NylasCalendar} from 'nylas-component-kit'
 
+import WeekView from '../../../src/components/nylas-calendar/week-view'
+
 fdescribe("Nylas Calendar Week View", () => {
   beforeEach(() => {
     this.dataSource = new TestDataSource();
@@ -16,6 +18,15 @@ fdescribe("Nylas Calendar Week View", () => {
   });
 
   it("renders a calendar", () => {
-    ReactTestUtils.isElementOfType(this.calendar, NylasCalendar)
+    expect(ReactTestUtils.findRenderedComponentWithType(this.calendar, NylasCalendar) instanceof NylasCalendar).toBe(true)
+  });
+
+  it("sets the correct moment", () => {
+    expect(this.calendar.state.currentMoment.valueOf()).toBe(now().valueOf())
+  });
+
+  it("defaulted to WeekView", () => {
+    expect(this.calendar.state.currentView).toBe("week");
+    expect(ReactTestUtils.findRenderedComponentWithType(this.calendar, WeekView) instanceof WeekView).toBe(true);
   });
 });
