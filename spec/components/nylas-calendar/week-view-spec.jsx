@@ -17,7 +17,7 @@ import {
 
 import WeekView from '../../../src/components/nylas-calendar/week-view'
 
-fdescribe("Nylas Calendar Week View", () => {
+describe("Nylas Calendar Week View", () => {
   beforeEach(() => {
     spyOn(WeekView.prototype, "_now").andReturn(now())
 
