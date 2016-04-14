@@ -58,6 +58,7 @@ const genEvent = ({start, end, object = "timespan"}) => {
 
 // All times are in "America/Los_Angeles"
 export const numAllDayEvents = 6
+export const numStandardEvents = 9
 export const numByDay = {
   1457769600: 2,
   1457856000: 7,

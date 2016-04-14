@@ -426,6 +426,7 @@ export default class WeekView extends React.Component {
     return (
       <div className="calendar-view week-view">
         <CalendarEventContainer
+          ref="calendarEventContainer"
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}

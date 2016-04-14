@@ -1,3 +1,4 @@
+import _ from 'underscore'
 import moment from 'moment'
 import React from 'react'
 import ReactTestUtils from 'react-addons-test-utils'
@@ -12,6 +13,7 @@ import {NylasCalendar} from 'nylas-component-kit'
 import {
   numByDay,
   numAllDayEvents,
+  numStandardEvents,
   eventOverlapForSunday,
 } from './fixtures/events'
 
@@ -19,12 +21,14 @@ import WeekView from '../../../src/components/nylas-calendar/week-view'
 
 describe("Nylas Calendar Week View", () => {
   beforeEach(() => {
-    spyOn(WeekView.prototype, "_now").andReturn(now())
+    spyOn(WeekView.prototype, "_now").andReturn(now());
 
+    this.onCalendarMouseDown = jasmine.createSpy("onCalendarMouseDown")
     this.dataSource = new TestDataSource();
     this.calendar = ReactTestUtils.renderIntoDocument(
       <NylasCalendar
         currentMoment={now()}
+        onCalendarMouseDown={this.onCalendarMouseDown}
         dataSource={this.dataSource}
       />
     );
@@ -135,5 +139,50 @@ describe("Nylas Calendar Week View", () => {
     const eventsByDay = this.weekView._eventsByDay(days);
     const eventOverlap = this.weekView._eventOverlap(eventsByDay['1457856000']);
     expect(eventOverlap).toEqual(eventOverlapForSunday)
+  });
+
+  it("renders the events onto the grid", () => {
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.weekView);
+
+    const events = $("calendar-event");
+    const standardEvents = $("calendar-event vertical");
+    const allDayEvents = $("calendar-event horizontal");
+
+    expect(events.length).toBe(numStandardEvents + numAllDayEvents)
+    expect(standardEvents.length).toBe(numStandardEvents)
+    expect(allDayEvents.length).toBe(numAllDayEvents)
+  });
+
+  it("finds the correct data from mouse events", () => {
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.weekView);
+
+    const eventContainer = this.weekView.refs.calendarEventContainer;
+
+    // Unfortunately, _dataFromMouseEvent requires the component to both
+    // be mounted and have size. To truly test this we'd have to load the
+    // integratino test environment. For now, we test that the event makes
+    // its way back to passed in callback handlers
+    const mouseData = {
+      x: 100,
+      y: 100,
+      width: 100,
+      height: 100,
+      time: now(),
+    }
+    spyOn(eventContainer, "_dataFromMouseEvent").andReturn(mouseData)
+
+    const eventEl = $("calendar-event vertical")[0];
+    ReactTestUtils.Simulate.mouseDown(eventEl, {x: 100, y: 100});
+
+    const mouseEvent = eventContainer._dataFromMouseEvent.calls[0].args[0];
+    expect(mouseEvent.x).toBe(100)
+    expect(mouseEvent.y).toBe(100)
+
+    const mouseDataOut = this.onCalendarMouseDown.calls[0].args[0]
+    expect(mouseDataOut.x).toEqual(mouseData.x)
+    expect(mouseDataOut.y).toEqual(mouseData.y)
+    expect(mouseDataOut.width).toEqual(mouseData.width)
+    expect(mouseDataOut.height).toEqual(mouseData.height)
+    expect(mouseDataOut.time.unix()).toEqual(mouseData.time.unix())
   });
 });
