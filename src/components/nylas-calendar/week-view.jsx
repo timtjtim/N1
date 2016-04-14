@@ -84,9 +84,14 @@ export default class WeekView extends React.Component {
     window.removeEventListener('resize', this._setIntervalHeight)
   }
 
+  // Indirection for testing purposes
+  _now() {
+    return moment()
+  }
+
   _initializeComponent(props) {
-    this.todayYear = moment().year()
-    this.todayDayOfYear = moment().dayOfYear()
+    this.todayYear = this._now().year()
+    this.todayDayOfYear = this._now().dayOfYear()
     if (this._sub) { this._sub.dispose() }
     const startMoment = this._calculateStartMoment(props)
     const endMoment = this._calculateEndMoment(props)
@@ -244,7 +249,7 @@ export default class WeekView extends React.Component {
   }
 
   _onClickToday = () => {
-    this._onChangeCurrentMoment(moment())
+    this._onChangeCurrentMoment(this._now())
   }
 
   _onClickNextWeek = () => {

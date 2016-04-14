@@ -8,6 +8,8 @@ import WeekView from '../../../src/components/nylas-calendar/week-view'
 
 fdescribe("Nylas Calendar Week View", () => {
   beforeEach(() => {
+    spyOn(WeekView.prototype, "_now").andReturn(now())
+
     this.dataSource = new TestDataSource();
     this.calendar = ReactTestUtils.renderIntoDocument(
       <NylasCalendar
@@ -15,6 +17,7 @@ fdescribe("Nylas Calendar Week View", () => {
         dataSource={this.dataSource}
       />
     );
+    this.weekView = ReactTestUtils.findRenderedComponentWithType(this.calendar, WeekView);
   });
 
   it("renders a calendar", () => {
@@ -27,6 +30,6 @@ fdescribe("Nylas Calendar Week View", () => {
 
   it("defaulted to WeekView", () => {
     expect(this.calendar.state.currentView).toBe("week");
-    expect(ReactTestUtils.findRenderedComponentWithType(this.calendar, WeekView) instanceof WeekView).toBe(true);
+    expect(this.weekView instanceof WeekView).toBe(true);
   });
 });
