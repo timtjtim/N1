@@ -11,9 +11,7 @@ import {NylasCalendar} from 'nylas-component-kit'
 
 import {activate, deactivate} from '../lib/main'
 
-import {
-  now,
-} from '../../../spec/components/nylas-calendar/test-utils'
+const now = window.testNowMoment
 
 /**
  * This tests the ProposedTimePicker as an integration test of the picker,
@@ -21,7 +19,7 @@ import {
  * ProposedTimeCalendarDataSource
  *
  */
-fdescribe("ProposedTimePicker", () => {
+describe("ProposedTimePicker", () => {
   beforeEach(() => {
     spyOn(NylasEnv, "getWindowType").andReturn("calendar");
     spyOn(WeekView.prototype, "_now").andReturn(now());

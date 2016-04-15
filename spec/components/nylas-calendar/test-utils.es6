@@ -1,9 +1,9 @@
 import moment from 'moment-timezone'
 
-export const TZ = "America/Los_Angeles";
+export const TZ = window.TEST_TIME_ZONE;
 export const TEST_CALENDAR = "TEST_CALENDAR";
 
-export const now = () => moment.tz("2016-03-15 12:00", TZ)
+export const now = () => window.testNowMoment();
 
 export const NOW_WEEK_START = moment.tz("2016-03-13 00:00", TZ);
 export const NOW_BUFFER_START = moment.tz("2016-03-06 00:00", TZ);
