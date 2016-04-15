@@ -56,8 +56,8 @@ class ProposedTimeCalendarStore extends NylasStore {
     if (!this._dragBuffer.anchor) {
       return []
     }
-    const {start, end} = this._dragBuffer
-    return [new Event().fromJSON({
+    const {start, end} = this._dragBuffer;
+    const event = new Event().fromJSON({
       title: "Availability Block",
       calendar_id: CALENDAR_ID,
       when: {
@@ -65,12 +65,14 @@ class ProposedTimeCalendarStore extends NylasStore {
         start_time: start,
         end_time: end,
       },
-    })];
+    })
+    event.proposalType = "availability"
+    return [event];
   }
 
   proposalsAsEvents() {
-    return _.map(this._proposals, (p) =>
-      new Event().fromJSON({
+    return _.map(this._proposals, (p) => {
+      const event = new Event().fromJSON({
         title: "Proposed Time",
         calendar_id: CALENDAR_ID,
         when: {
@@ -79,7 +81,9 @@ class ProposedTimeCalendarStore extends NylasStore {
           end_time: p.end,
         },
       })
-    ).concat(this._dragBufferAsEvent());
+      event.proposalType = "proposal";
+      return event
+    }).concat(this._dragBufferAsEvent());
   }
 
   _convertBufferToProposedTimes() {

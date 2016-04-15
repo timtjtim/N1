@@ -5,17 +5,20 @@ export default class TestProposalDataSource extends CalendarDataSource {
   buildObservable({startTime, endTime}) {
     this.endTime = endTime
     this.startTime = startTime
+    this._usub = ProposedTimeCalendarStore.listen(this.manuallyTrigger)
     return this
   }
 
-  manuallyTrigger() {
+  manuallyTrigger = () => {
     this.onNext({events: ProposedTimeCalendarStore.proposalsAsEvents()})
   }
 
   subscribe(onNext) {
     this.onNext = onNext
     this.manuallyTrigger()
-    const dispose = jasmine.createSpy("dispose")
+    const dispose = () => {
+      this._usub()
+    }
     return {dispose}
   }
 }

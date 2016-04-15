@@ -28,8 +28,8 @@ fdescribe("ProposedTimePicker", () => {
     spyOn(NylasCalendar.prototype, "_now").andReturn(now());
     activate()
 
-    const testSrc = new TestProposalDataSource()
-    spyOn(ProposedTimePicker.prototype, "_dataSource").andReturn(testSrc)
+    this.testSrc = new TestProposalDataSource()
+    spyOn(ProposedTimePicker.prototype, "_dataSource").andReturn(this.testSrc)
     this.picker = ReactTestUtils.renderIntoDocument(
       <ProposedTimePicker />
     )
@@ -66,6 +66,9 @@ fdescribe("ProposedTimePicker", () => {
     const events = $("calendar-event");
     expect(events.length).toBe(1);
     expect(proposals.length).toBe(1);
+
+    // It's not an availability block but a full blown proposal
+    expect($("availability").length).toBe(0);
   });
 
   it("creates the time picker for the correct timespan", () => {
@@ -75,9 +78,94 @@ fdescribe("ProposedTimePicker", () => {
   });
 
   it("creates a block of proposals on drag down", () => {
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseMove({
+      time: now().add(30, 'minutes'),
+      mouseIsDown: true,
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseMove({
+      time: now().add(60, 'minutes'),
+      mouseIsDown: true,
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+
+    // Ensure that we don't see any proposals
+    expect(ProposedTimeCalendarStore.proposals().length).toBe(0)
+    let proposalEls = $("proposal");
+    expect(proposalEls.length).toBe(0);
+
+    // But we DO see the drag block event
+    expect(ProposedTimeCalendarStore.proposalsAsEvents().length).toBe(1)
+    let events = $("calendar-event");
+    expect($("availability").length).toBe(1);
+    expect(events.length).toBe(1);
+
+    this.picker._onCalendarMouseUp({
+      time: now().add(90, 'minutes'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // Now that we've moused up, this should convert them into proposals
+    const proposals = ProposedTimeCalendarStore.proposals()
+    expect(proposals.length).toBe(3)
+    expect(ProposedTimeCalendarStore.proposalsAsEvents().length).toBe(3)
+    proposalEls = $("proposal");
+    events = $("calendar-event");
+    expect(events.length).toBe(3);
+    expect(proposalEls.length).toBe(3);
+
+    const times = proposals.map((p) =>
+      [p.start, p.end]
+    );
+
+    expect(times).toEqual([
+      [now().unix(), now().add(30, 'minutes').unix() - 1],
+      [now().add(30, 'minutes').unix(),
+       now().add(60, 'minutes').unix() - 1],
+      [now().add(60, 'minutes').unix(),
+       now().add(90, 'minutes').unix() - 1],
+    ]);
   });
 
   it("creates a block of proposals on drag up", () => {
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseMove({
+      time: now().subtract(30, 'minutes'),
+      mouseIsDown: true,
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseMove({
+      time: now().subtract(60, 'minutes'),
+      mouseIsDown: true,
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now().subtract(90, 'minutes'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // Now that we've moused up, this should convert them into proposals
+    const proposals = ProposedTimeCalendarStore.proposals()
+    const times = proposals.map((p) =>
+      [p.start, p.end]
+    );
+
+    expect(times).toEqual([
+      [now().subtract(90, 'minutes').unix(),
+       now().subtract(60, 'minutes').unix() - 1],
+      [now().subtract(60, 'minutes').unix(),
+       now().subtract(30, 'minutes').unix() - 1],
+      [now().subtract(30, 'minutes').unix(),
+       now().unix() - 1],
+    ]);
   });
 
   it("removes proposals when clicked on", () => {
