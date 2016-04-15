@@ -152,7 +152,6 @@ fdescribe("ProposedTimePicker", () => {
       currentView: NylasCalendar.WEEK_VIEW,
     })
 
-    // Now that we've moused up, this should convert them into proposals
     const proposals = ProposedTimeCalendarStore.proposals()
     const times = proposals.map((p) =>
       [p.start, p.end]
@@ -169,14 +168,177 @@ fdescribe("ProposedTimePicker", () => {
   });
 
   it("removes proposals when clicked on", () => {
+    // This created a proposal
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // See the proposal is there
+    expect(ProposedTimeCalendarStore.proposals().length).toBe(1)
+
+    // Now let's find and click it.
+    // This also tests to make sure it actually rendered
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+    const removeBtn = $("rm-time proposal");
+    expect(removeBtn.length).toBe(1)
+    ReactTestUtils.Simulate.mouseDown(ReactDOM.findDOMNode(removeBtn[0]))
+
+    // Now see that it's gone!
+    expect(ProposedTimeCalendarStore.proposals().length).toBe(0)
+    // And gone from the DOM too.
+    expect($("proposal").length).toBe(0);
+    // And didn't turn into an availability block or something dumb
+    expect($("availability").length).toBe(0);
   });
 
   it("can clear all of the proposals", () => {
+    // This created a proposal
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // See the proposal is there
+    expect(ProposedTimeCalendarStore.proposals().length).toBe(1)
+
+    // Find the clear button
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+    const clearBtns = $("clear-proposed-times");
+    expect(clearBtns.length).toBe(1);
+
+    // Click it
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(clearBtns[0]))
+
+    // Ensure no more proposals
+    expect(ProposedTimeCalendarStore.proposals().length).toBe(0)
+    // And nothing still rendered
+    expect($("proposal").length).toBe(0);
+    expect($("availability").length).toBe(0);
   });
 
   it("can change the duration", () => {
+    // Find the duration picker.
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+    const pickerEls = $("duration-picker-select");
+    expect(pickerEls.length).toBe(1);
+
+    // Starts with default duration
+    const d30Min = ProposedTimeCalendarStore.DURATIONS[0]
+    expect(ProposedTimeCalendarStore._duration).toEqual(d30Min)
+
+    const pickerEl = ReactDOM.findDOMNode(pickerEls[0]);
+    pickerEl.value = "1.5|hours|1½ hr"
+    ReactTestUtils.Simulate.change(pickerEl)
+
+    const dHrHalf = ProposedTimeCalendarStore.DURATIONS[2]
+    dHrHalf[0] = `${dHrHalf[0]}` // convert to string
+    expect(ProposedTimeCalendarStore._duration).toEqual(dHrHalf)
   });
 
   it("creates a block of proposals with a longer duration", () => {
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+
+    // Create a single proposal with the default 30 min duration.
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // It's 30 min long
+    const proposals = ProposedTimeCalendarStore.proposals()
+    const times = proposals.map((p) => [p.start, p.end]);
+    expect(times).toEqual([
+      [now().unix(),
+       now().add(30, 'minutes').unix() - 1],
+    ]);
+
+    // Change duration to 2.5 hours
+    const pickerEl = ReactDOM.findDOMNode($("duration-picker-select")[0]);
+    pickerEl.value = "2.5|hours|2½ hr"
+    ReactTestUtils.Simulate.change(pickerEl)
+
+    // Click a new event
+    this.picker._onCalendarMouseDown({
+      time: now().add(2, 'hours'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now().add(2, 'hours'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // It should have added a 2.5 hour long event and left the original
+    // event alone
+    const p2 = ProposedTimeCalendarStore.proposals()
+    const t2 = p2.map((p) => [p.start, p.end]);
+    expect(t2).toEqual([
+      [now().unix(),
+       now().add(30, 'minutes').unix() - 1],
+      [now().add(2, 'hours').unix(),
+       now().add(4.5, 'hours').unix() - 1],
+    ]);
+  });
+
+  it("overrides events so they don't overlap", () => {
+    const $ = _.partial(ReactTestUtils.scryRenderedDOMComponentsWithClass, this.picker);
+    this.picker._onCalendarMouseDown({
+      time: now(),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now().add(1, 'hour'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // Creates two proposals.
+    const proposals = ProposedTimeCalendarStore.proposals()
+    const times = proposals.map((p) => [p.start, p.end]);
+    expect(times).toEqual([
+      [now().unix(),
+       now().add(30, 'minutes').unix() - 1],
+      [now().add(30, 'minutes').unix(),
+       now().add(60, 'minutes').unix() - 1],
+    ]);
+
+    // Change the duration to 2 hours
+    const pickerEl = ReactDOM.findDOMNode($("duration-picker-select")[0]);
+    pickerEl.value = "2|hours|2 hr"
+    ReactTestUtils.Simulate.change(pickerEl)
+
+    // Click and drag overlapping the first of the original events.
+    this.picker._onCalendarMouseDown({
+      time: now().subtract(1.5, 'hours'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+    this.picker._onCalendarMouseUp({
+      time: now().add(20, 'minutes'),
+      currentView: NylasCalendar.WEEK_VIEW,
+    })
+
+    // See that there's only 1 new event with the correct time and it
+    // exhchanged it with the old one.
+    //
+    // It left the non overlapping one alone.
+    const p2 = ProposedTimeCalendarStore.proposals()
+    const t2 = p2.map((p) => [p.start, p.end]);
+    expect(t2).toEqual([
+      [now().add(30, 'minutes').unix(),
+       now().add(60, 'minutes').unix() - 1],
+      [now().subtract(1.5, 'hours').unix(),
+       now().add(30, 'minutes').unix() - 1],
+    ]);
   });
 });

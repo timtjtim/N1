@@ -98,8 +98,9 @@ class ProposedTimeCalendarStore extends NylasStore {
       maxMoment.add(30, 'minutes')
     }
 
+    const overlapBoundsTest = {start: bounds.start, end: bounds.end - 1}
     this._proposals = _.reject(this._proposals, (p) =>
-      Utils.overlapsBounds(bounds, p)
+      Utils.overlapsBounds(overlapBoundsTest, p)
     )
 
     const blockSize = this._duration.slice(0, 2)
