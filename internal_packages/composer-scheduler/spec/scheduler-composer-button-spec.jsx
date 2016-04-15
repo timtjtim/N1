@@ -1,19 +1,38 @@
+import React from 'react'
+import ReactTestUtils from 'react-addons-test-utils'
+
+import SchedulerComposerButton from '../lib/composer/scheduler-composer-button'
+
+import {
+  DRAFT_CLIENT_ID,
+  prepareDraft,
+  cleanupDraft,
+} from './composer-scheduler-spec-helper'
+
 describe("SchedulerComposerButton", () => {
-  it("loads the draft", () => {
+  beforeEach(() => {
+    this.session = null
+    // Will eventually fill this.session
+    prepareDraft.call(this)
+
+    runs(() => {
+      this.eventCardContainer = ReactTestUtils.renderIntoDocument(
+        <SchedulerComposerButton draftClientId={DRAFT_CLIENT_ID} />
+      );
+    })
+
+    waitsFor(() => this.eventCardContainer._session)
   });
 
-  it("attempts to auth the plugin", () => {
+  afterEach(() => {
+    cleanupDraft()
+  })
+
+  it("loads the draft and renders the button", () => {
+    const el = ReactTestUtils.findRenderedComponentWithType(this.eventCardContainer,
+        SchedulerComposerButton);
+    expect(el instanceof SchedulerComposerButton).toBe(true)
   });
 
-  it("notifies if plugin auth fails", () => {
-  });
-
-  it("renders the popover when clicked", () => {
-  });
-
-  it("creates a proposed time event", () => {
-  });
-
-  it("warns if there are no editable calendars", () => {
-  });
+  // More tests TODO
 });

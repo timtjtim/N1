@@ -7,57 +7,35 @@ import ReactTestUtils from 'react-addons-test-utils';
 import NewEventCardContainer from '../lib/composer/new-event-card-container'
 
 import {
-  DatabaseStore,
-  DraftStore,
   Calendar,
-  Message,
-  Actions,
-  Contact,
   Event,
 } from 'nylas-exports'
 
-import {activate, deactivate} from '../lib/main'
+import {
+  DRAFT_CLIENT_ID,
+  prepareDraft,
+  cleanupDraft,
+} from './composer-scheduler-spec-helper'
 
-const DRAFT_CLIENT_ID = "draft-client-id"
 const now = window.testNowMoment
 
 describe("NewEventCard", () => {
   beforeEach(() => {
-    spyOn(NylasEnv, "isMainWindow").andReturn(true);
-    spyOn(NylasEnv, "getWindowType").andReturn("root");
-    spyOn(Actions, "setMetadata").andCallFake((draft, pluginId, metadata) => {
-      if (!this.session) {
-        throw new Error("Setup test session first")
-      }
-      this.session.changes.addPluginMetadata(PLUGIN_ID, metadata);
-    })
-    activate();
+    this.session = null
+    // Will eventually fill this.session
+    prepareDraft.call(this)
 
-    const draft = new Message({
-      clientId: DRAFT_CLIENT_ID,
-      draft: true,
-      body: "",
-      accountId: window.TEST_ACCOUNT_ID,
-      from: [new Contact({email: window.TEST_ACCOUNT_EMAIL})],
-    })
-
-    spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(draft));
-
-    this.session = null;
     runs(() => {
-      DraftStore.sessionForClientId(DRAFT_CLIENT_ID).then((session) => {
-        this.session = session
-      });
       this.eventCardContainer = ReactTestUtils.renderIntoDocument(
         <NewEventCardContainer draftClientId={DRAFT_CLIENT_ID} />
       );
     })
-    waitsFor(() => this.eventCardContainer._session && this.session);
+
+    waitsFor(() => this.eventCardContainer._session)
   });
 
   afterEach(() => {
-    DraftStore._cleanupAllSessions()
-    deactivate()
+    cleanupDraft()
   })
 
   const testCalendars = () => [new Calendar({
